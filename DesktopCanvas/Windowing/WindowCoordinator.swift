@@ -3,6 +3,7 @@ import AppKit
 enum WindowCoordinatorError: LocalizedError {
     case noScreen
     case sameWindow
+    case inactiveWorkspace
 
     var errorDescription: String? {
         switch self {
@@ -10,6 +11,8 @@ enum WindowCoordinatorError: LocalizedError {
             return "没有找到可用显示器"
         case .sameWindow:
             return "主任务和关注任务不能选择同一个窗口"
+        case .inactiveWorkspace:
+            return "工作台尚未启用"
         }
     }
 }
@@ -19,6 +22,8 @@ final class WindowCoordinator {
     private let accessibilityClient: AccessibilityClient
     private let constraintMonitor: WindowConstraintMonitor
     private var snapshots: [WindowSnapshot] = []
+    private var activeMainWindow: RunningWindow?
+    private var activeAttentionWindow: RunningWindow?
 
     var onConstraintFailure: ((RunningWindow, Error) -> Void)? {
         didSet {
@@ -43,20 +48,49 @@ final class WindowCoordinator {
         mainWindow: RunningWindow,
         attentionWindow: RunningWindow,
         ratio: Double,
-        mainOnLeft: Bool
+        mainOnLeft: Bool,
+        targetScreen: NSScreen
     ) throws {
         guard mainWindow.id != attentionWindow.id else {
             throw WindowCoordinatorError.sameWindow
         }
-        guard
-            let targetScreen = NSScreen.main ?? NSScreen.screens.first,
-            let menuBarScreen = NSScreen.screens.first
-        else {
-            throw WindowCoordinatorError.noScreen
-        }
 
         if canRestore {
             try restore()
+        }
+
+        snapshots = [
+            try accessibilityClient.snapshot(of: mainWindow),
+            try accessibilityClient.snapshot(of: attentionWindow),
+        ]
+        activeMainWindow = mainWindow
+        activeAttentionWindow = attentionWindow
+
+        do {
+            try updateLayout(
+                ratio: ratio,
+                mainOnLeft: mainOnLeft,
+                targetScreen: targetScreen
+            )
+        } catch {
+            try? restore()
+            throw error
+        }
+    }
+
+    func updateLayout(
+        ratio: Double,
+        mainOnLeft: Bool,
+        targetScreen: NSScreen
+    ) throws {
+        guard
+            let mainWindow = activeMainWindow,
+            let attentionWindow = activeAttentionWindow
+        else {
+            throw WindowCoordinatorError.inactiveWorkspace
+        }
+        guard let menuBarScreen = NSScreen.screens.first else {
+            throw WindowCoordinatorError.noScreen
         }
 
         let accessibilityVisibleFrame = ScreenCoordinateMapper.appKitToAccessibility(
@@ -70,24 +104,14 @@ final class WindowCoordinator {
             mainOnLeft: mainOnLeft
         )
 
-        snapshots = [
-            try accessibilityClient.snapshot(of: mainWindow),
-            try accessibilityClient.snapshot(of: attentionWindow),
-        ]
-
-        do {
-            try accessibilityClient.setFrame(frames.main, for: mainWindow)
-            try accessibilityClient.setFrame(frames.attention, for: attentionWindow)
-            constraintMonitor.start(
-                mainWindow: mainWindow,
-                mainZone: frames.main,
-                attentionWindow: attentionWindow,
-                attentionZone: frames.attention
-            )
-        } catch {
-            try? restore()
-            throw error
-        }
+        try accessibilityClient.setFrame(frames.main, for: mainWindow)
+        try accessibilityClient.setFrame(frames.attention, for: attentionWindow)
+        constraintMonitor.start(
+            mainWindow: mainWindow,
+            mainZone: frames.main,
+            attentionWindow: attentionWindow,
+            attentionZone: frames.attention
+        )
     }
 
     func restore() throws {
@@ -104,6 +128,8 @@ final class WindowCoordinator {
         }
 
         snapshots.removeAll()
+        activeMainWindow = nil
+        activeAttentionWindow = nil
         if let firstError {
             throw firstError
         }

@@ -8,6 +8,8 @@ The searchable design catalog did not return a verified macOS utility match, so 
 - Use system typography, semantic colors, materials, spacing, focus, and disabled states.
 - Keep the permission explanation explicit before invoking the system prompt.
 - Use a single primary action per section and place errors beside the failed action.
+- Keep window selection locked while a workspace is active, but leave safe layout controls available for immediate adjustment.
+- Explain whether a setting applies immediately or on the next activation; preserve the original restore point across live changes.
 - All core operations must be keyboard reachable and VoiceOver labeled.
 - Respect Increase Contrast, Reduce Transparency, and Reduce Motion automatically through system components.
 - Never use color alone for permission, error, or selection state.
@@ -23,6 +25,6 @@ The searchable design catalog did not return a verified macOS utility match, so 
 
 ## Core surfaces
 
-- Main spike window: grouped form with permission, window selection, split preview, actions, and logs.
-- Menu bar: status, open-window action, apply, restore, refresh, quit.
+- Main window: grouped form with permission, window selection, target display, live split preview, actions, and logs.
+- Menu bar: status, open-window action, apply, live ratio/side/display controls, restore, refresh, quit.
 - Future overlay: nonactivating AppKit panel with clearly labeled controls and no content interception.

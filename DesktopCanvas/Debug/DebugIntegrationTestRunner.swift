@@ -70,11 +70,19 @@ enum DebugIntegrationTestRunner {
             report["mainBefore"] = dictionary(for: mainBefore)
             report["attentionBefore"] = dictionary(for: attentionBefore)
 
+            guard
+                let targetScreen = NSScreen.main ?? NSScreen.screens.first,
+                let menuBarScreen = NSScreen.screens.first
+            else {
+                throw DebugIntegrationError.noScreen
+            }
+
             try coordinator.apply(
                 mainWindow: mainWindow,
                 attentionWindow: attentionWindow,
                 ratio: 70,
-                mainOnLeft: true
+                mainOnLeft: true,
+                targetScreen: targetScreen
             )
             try? await Task.sleep(for: .milliseconds(350))
 
@@ -82,13 +90,6 @@ enum DebugIntegrationTestRunner {
             let attentionAfterLayout = try client.currentFrame(of: attentionWindow)
             report["mainAfterLayout"] = dictionary(for: mainAfterLayout)
             report["attentionAfterLayout"] = dictionary(for: attentionAfterLayout)
-
-            guard
-                let targetScreen = NSScreen.main ?? NSScreen.screens.first,
-                let menuBarScreen = NSScreen.screens.first
-            else {
-                throw DebugIntegrationError.noScreen
-            }
 
             let accessibilityVisibleFrame = ScreenCoordinateMapper.appKitToAccessibility(
                 targetScreen.visibleFrame,
@@ -152,6 +153,27 @@ enum DebugIntegrationTestRunner {
             }
             report["systemFullScreenConstrainedToZone"] = systemFullScreenConstrained
 
+            try coordinator.updateLayout(
+                ratio: 60,
+                mainOnLeft: false,
+                targetScreen: targetScreen
+            )
+            try? await Task.sleep(for: .milliseconds(350))
+
+            let updatedFrames = LayoutEngine.split(
+                visibleFrame: accessibilityVisibleFrame,
+                mainRatio: 0.60,
+                gap: 8,
+                mainOnLeft: false
+            )
+            let mainAfterLiveUpdate = try client.currentFrame(of: mainWindow)
+            let attentionAfterLiveUpdate = try client.currentFrame(of: attentionWindow)
+            report["mainAfterLiveUpdate"] = dictionary(for: mainAfterLiveUpdate)
+            report["attentionAfterLiveUpdate"] = dictionary(for: attentionAfterLiveUpdate)
+            let liveUpdateMatches = approximatelyEqual(mainAfterLiveUpdate, updatedFrames.main)
+                && approximatelyEqual(attentionAfterLiveUpdate, updatedFrames.attention)
+            report["liveLayoutUpdateMatchesExpectedFrames"] = liveUpdateMatches
+
             try coordinator.restore()
             try? await Task.sleep(for: .milliseconds(350))
 
@@ -167,6 +189,7 @@ enum DebugIntegrationTestRunner {
                 && mainMaximumConstrained
                 && attentionMaximumConstrained
                 && systemFullScreenConstrained
+                && liveUpdateMatches
                 && restoreMatches
         } catch {
             try? coordinator.restore()

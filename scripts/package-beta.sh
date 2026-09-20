@@ -4,8 +4,9 @@ set -euo pipefail
 
 SCRIPT_DIRECTORY="${0:A:h}"
 PROJECT_ROOT="${SCRIPT_DIRECTORY:h}"
-BETA_VERSION="${1:-0.1}"
-MARKETING_VERSION="${2:-0.1.0}"
+BETA_VERSION="${1:-0.2}"
+MARKETING_VERSION="${2:-0.2.0}"
+BUILD_VERSION="${3:-2}"
 RELEASE_NAME="DesktopCanvas-Beta-${BETA_VERSION}"
 DIST_DIRECTORY="${PROJECT_ROOT}/dist"
 DERIVED_DATA_DIRECTORY="${PROJECT_ROOT}/.release/DerivedData-${BETA_VERSION}"
@@ -13,6 +14,12 @@ APP_PATH="${DERIVED_DATA_DIRECTORY}/Build/Products/Release/DesktopCanvas.app"
 DMG_PATH="${DIST_DIRECTORY}/${RELEASE_NAME}.dmg"
 ZIP_PATH="${DIST_DIRECTORY}/${RELEASE_NAME}-macOS-universal.zip"
 CHECKSUM_PATH="${DIST_DIRECTORY}/${RELEASE_NAME}-SHA256.txt"
+RELEASE_NOTES_PATH="${PROJECT_ROOT}/RELEASE_NOTES_BETA_${BETA_VERSION}.md"
+
+if [[ ! -f "${RELEASE_NOTES_PATH}" ]]; then
+    print -u2 "未找到对应的发布说明：${RELEASE_NOTES_PATH}"
+    exit 1
+fi
 
 for output_path in "${DMG_PATH}" "${ZIP_PATH}" "${CHECKSUM_PATH}"; do
     if [[ -e "${output_path}" ]]; then
@@ -32,7 +39,7 @@ xcodebuild \
     ARCHS="arm64 x86_64" \
     ONLY_ACTIVE_ARCH=NO \
     MARKETING_VERSION="${MARKETING_VERSION}" \
-    CURRENT_PROJECT_VERSION=1 \
+    CURRENT_PROJECT_VERSION="${BUILD_VERSION}" \
     CODE_SIGN_IDENTITY="-" \
     CODE_SIGNING_ALLOWED=YES \
     clean build
@@ -57,7 +64,7 @@ PAYLOAD_DIRECTORY="${STAGING_ROOT}/${RELEASE_NAME}"
 mkdir -p "${PAYLOAD_DIRECTORY}"
 
 ditto "${APP_PATH}" "${PAYLOAD_DIRECTORY}/DesktopCanvas.app"
-ditto "${PROJECT_ROOT}/RELEASE_NOTES_BETA_0.1.md" "${PAYLOAD_DIRECTORY}/Beta 0.1 发布说明.md"
+ditto "${RELEASE_NOTES_PATH}" "${PAYLOAD_DIRECTORY}/Beta ${BETA_VERSION} 发布说明.md"
 ln -s /Applications "${PAYLOAD_DIRECTORY}/Applications"
 
 hdiutil create \

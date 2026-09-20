@@ -22,7 +22,7 @@ struct DesktopCanvasApp: App {
                     model.start()
                 }
         }
-        .defaultSize(width: 760, height: 680)
+        .defaultSize(width: 760, height: 760)
         .windowResizability(.contentMinSize)
 
         MenuBarExtra("桌面画布", systemImage: "rectangle.split.2x1") {

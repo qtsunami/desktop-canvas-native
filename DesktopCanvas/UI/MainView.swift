@@ -25,16 +25,25 @@ struct MainView: View {
             Divider()
             statusBar
         }
-        .frame(minWidth: 680, minHeight: 600)
+        .frame(minWidth: 680, minHeight: 640)
         .background(Color(nsColor: .windowBackgroundColor))
     }
 
     private var header: some View {
         HStack(spacing: 12) {
-            Image(systemName: "rectangle.split.2x1.fill")
-                .font(.system(size: 28, weight: .semibold))
-                .foregroundStyle(.tint)
-                .accessibilityHidden(true)
+            if Bundle.main.bundleURL.pathExtension == "app" {
+                Image(nsImage: NSApplication.shared.applicationIconImage)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 40, height: 40)
+                    .accessibilityHidden(true)
+            } else {
+                Image(systemName: "rectangle.split.2x1.fill")
+                    .font(.system(size: 28, weight: .semibold))
+                    .foregroundStyle(.tint)
+                    .frame(width: 40, height: 40)
+                    .accessibilityHidden(true)
+            }
 
             VStack(alignment: .leading, spacing: 2) {
                 Text("桌面画布")
@@ -67,7 +76,7 @@ struct MainView: View {
                 .font(.caption)
                 .lineLimit(1)
             Spacer()
-            Text("Beta 0.1")
+            Text(AppVersion.betaLabel)
                 .font(.caption)
                 .foregroundStyle(.tertiary)
         }
@@ -174,7 +183,11 @@ private struct WorkspaceSetupView: View {
                     VStack(alignment: .leading, spacing: 3) {
                         Text("工作台运行中")
                             .font(.headline)
-                        Text("最大化或拖动越界时，窗口会自动回到 \(Int(model.ratio))% / \(100 - Int(model.ratio))% 区域。")
+                        Text(
+                            "\(model.selectedDisplay?.shortTitle ?? "所选显示器") · "
+                                + "\(Int(model.ratio))% / \(100 - Int(model.ratio))%。"
+                                + " 调整下方布局会立即生效。"
+                        )
                             .font(.caption)
                             .foregroundStyle(.secondary)
                             .fixedSize(horizontal: false, vertical: true)
@@ -193,7 +206,6 @@ private struct WorkspaceSetupView: View {
                     RoundedRectangle(cornerRadius: 8)
                         .stroke(Color.green.opacity(0.35), lineWidth: 1)
                 }
-                .accessibilityElement(children: .combine)
             }
 
             GroupBox {
@@ -240,6 +252,15 @@ private struct WorkspaceSetupView: View {
 
             GroupBox {
                 VStack(alignment: .leading, spacing: 14) {
+                    Picker("目标显示器", selection: displayBinding) {
+                        ForEach(model.displays) { display in
+                            Text(display.menuTitle).tag(display.id)
+                        }
+                    }
+                    .help("两个窗口将排列在所选显示器的可用桌面区域")
+
+                    Divider()
+
                     HStack {
                         Text("主任务占比")
                         Spacer()
@@ -248,7 +269,23 @@ private struct WorkspaceSetupView: View {
                             .foregroundStyle(.secondary)
                     }
 
-                    Slider(value: $model.ratio, in: 50 ... 75, step: 5) {
+                    HStack(spacing: 8) {
+                        Text("常用比例")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+
+                        ForEach([50, 60, 70, 75], id: \.self) { value in
+                            Toggle(
+                                "\(value):\(100 - value)",
+                                isOn: presetBinding(for: Double(value))
+                            )
+                            .toggleStyle(.button)
+                            .controlSize(.small)
+                            .accessibilityHint("将主任务占比设为 \(value)%")
+                        }
+                    }
+
+                    Slider(value: ratioBinding, in: 50 ... 75, step: 5) {
                         Text("主任务窗口宽度")
                     } minimumValueLabel: {
                         Text("50")
@@ -257,7 +294,7 @@ private struct WorkspaceSetupView: View {
                     }
                     .accessibilityValue("主任务 \(Int(model.ratio))%，关注任务 \(100 - Int(model.ratio))%")
 
-                    Picker("主任务位置", selection: $model.mainOnLeft) {
+                    Picker("主任务位置", selection: sideBinding) {
                         Text("左侧").tag(true)
                         Text("右侧").tag(false)
                     }
@@ -269,7 +306,7 @@ private struct WorkspaceSetupView: View {
             } label: {
                 Label("布局", systemImage: "rectangle.split.2x1")
             }
-            .disabled(model.isWorkspaceActive)
+            .disabled(model.isWorking || model.displays.isEmpty)
 
             HStack {
                 Button {
@@ -302,6 +339,38 @@ private struct WorkspaceSetupView: View {
         }
     }
 
+    private var ratioBinding: Binding<Double> {
+        Binding(
+            get: { model.ratio },
+            set: { model.setRatio($0) }
+        )
+    }
+
+    private var sideBinding: Binding<Bool> {
+        Binding(
+            get: { model.mainOnLeft },
+            set: { model.setMainOnLeft($0) }
+        )
+    }
+
+    private var displayBinding: Binding<String> {
+        Binding(
+            get: { model.selectedDisplayID },
+            set: { model.setSelectedDisplayID($0) }
+        )
+    }
+
+    private func presetBinding(for value: Double) -> Binding<Bool> {
+        Binding(
+            get: { model.ratio == value },
+            set: { isSelected in
+                if isSelected {
+                    model.setRatio(value)
+                }
+            }
+        )
+    }
+
     @ViewBuilder
     private func windowPicker(
         title: String,
@@ -317,8 +386,20 @@ private struct WorkspaceSetupView: View {
             Picker(title, selection: selection) {
                 Text("请选择窗口").tag(String?.none)
                 ForEach(model.manageableWindows) { window in
-                    Text(window.menuTitle)
+                    if let appIcon = window.appIcon {
+                        Label {
+                            Text(window.menuTitle)
+                        } icon: {
+                            Image(nsImage: appIcon)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 16, height: 16)
+                        }
                         .tag(Optional(window.id))
+                    } else {
+                        Text(window.menuTitle)
+                            .tag(Optional(window.id))
+                    }
                 }
             }
             .labelsHidden()
@@ -348,7 +429,7 @@ private struct LayoutPreview: View {
                 }
             }
         }
-        .frame(height: 112)
+        .frame(height: 100)
         .padding(8)
         .background(Color(nsColor: .underPageBackgroundColor), in: RoundedRectangle(cornerRadius: 8))
         .overlay {
@@ -467,6 +548,9 @@ struct MenuBarContentView: View {
                 if let attention = model.selectedAttentionWindow {
                     Text("关注：\(attention.appName)")
                 }
+                if let display = model.selectedDisplay {
+                    Text("显示器：\(display.shortTitle)")
+                }
 
                 if model.isWorkspaceActive {
                     Label(
@@ -479,6 +563,43 @@ struct MenuBarContentView: View {
                     model.applyLayout()
                 }
                 .disabled(!model.canApply)
+
+                Menu("主任务比例") {
+                    ForEach([50, 60, 70, 75], id: \.self) { value in
+                        Button {
+                            model.setRatio(Double(value))
+                        } label: {
+                            if Int(model.ratio) == value {
+                                Label("\(value):\(100 - value)", systemImage: "checkmark")
+                            } else {
+                                Text("\(value):\(100 - value)")
+                            }
+                        }
+                    }
+                }
+                .disabled(model.isWorking)
+
+                Button(model.mainOnLeft ? "主任务移到右侧" : "主任务移到左侧") {
+                    model.toggleMainSide()
+                }
+                .disabled(model.isWorking)
+
+                if model.displays.count > 1 {
+                    Menu("目标显示器") {
+                        ForEach(model.displays) { display in
+                            Button {
+                                model.setSelectedDisplayID(display.id)
+                            } label: {
+                                if model.selectedDisplayID == display.id {
+                                    Label(display.menuTitle, systemImage: "checkmark")
+                                } else {
+                                    Text(display.menuTitle)
+                                }
+                            }
+                        }
+                    }
+                    .disabled(model.isWorking)
+                }
 
                 Button("停止并恢复") {
                     model.restoreWindows()
@@ -534,7 +655,7 @@ struct SettingsView: View {
             }
 
             Section("关于") {
-                LabeledContent("版本", value: "Beta 0.1")
+                LabeledContent("版本", value: AppVersion.betaLabel)
                 LabeledContent("最低系统", value: "macOS 14")
             }
         }

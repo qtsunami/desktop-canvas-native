@@ -26,18 +26,18 @@ enum SnapshotRenderer {
         case "workspace-active":
             configureWorkspaceFixture(model)
             model.isWorkspaceActive = true
-            model.statusMessage = "工作台运行中：主任务最多 70%，关注任务最多 30%"
+            model.statusMessage = "工作台运行中：内建显示器（主显示器），70 : 30"
         default:
             throw SnapshotError.invalidArguments
         }
 
         let content = MainView()
             .environmentObject(model)
-            .frame(width: 760, height: 680)
+            .frame(width: 760, height: 760)
             .environment(\.colorScheme, isDark ? .dark : .light)
 
         let hostingView = NSHostingView(rootView: content)
-        hostingView.frame = NSRect(x: 0, y: 0, width: 760, height: 680)
+        hostingView.frame = NSRect(x: 0, y: 0, width: 760, height: 760)
         hostingView.appearance = NSAppearance(named: isDark ? .darkAqua : .aqua)
         hostingView.layoutSubtreeIfNeeded()
         hostingView.displayIfNeeded()
@@ -55,6 +55,16 @@ enum SnapshotRenderer {
     private static func configureWorkspaceFixture(_ model: AppModel) {
         let placeholderElement = AXUIElementCreateApplication(ProcessInfo.processInfo.processIdentifier)
         model.permissionState = .granted
+        model.displays = [
+            WorkspaceDisplay(
+                id: "fixture-display",
+                name: "内建显示器",
+                pointSize: CGSize(width: 1_440, height: 900),
+                isMain: true,
+                screen: nil
+            ),
+        ]
+        model.selectedDisplayID = "fixture-display"
         model.windows = [
             RunningWindow(
                 id: "fixture-main",
@@ -88,6 +98,7 @@ enum SnapshotRenderer {
         model.mainWindowID = "fixture-main"
         model.attentionWindowID = "fixture-attention"
         model.ratio = 70
+        model.mainOnLeft = true
         model.statusMessage = "已找到 2 个可管理窗口"
     }
 }
