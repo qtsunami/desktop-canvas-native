@@ -1,0 +1,82 @@
+{
+  "accessibilityTrusted" : true,
+  "attentionAfterConstraint" : {
+    "height" : 1050,
+    "width" : 560,
+    "x" : 3042,
+    "y" : 30
+  },
+  "attentionAfterLayout" : {
+    "height" : 1050,
+    "width" : 559,
+    "x" : 3042,
+    "y" : 30
+  },
+  "attentionAfterMaximizeRequest" : {
+    "height" : 1050,
+    "width" : 1874,
+    "x" : 1728,
+    "y" : 30
+  },
+  "attentionAfterRestore" : {
+    "height" : 392,
+    "width" : 420,
+    "x" : 3101,
+    "y" : 508
+  },
+  "attentionBefore" : {
+    "height" : 392,
+    "width" : 420,
+    "x" : 3101,
+    "y" : 508
+  },
+  "attentionMaximumConstrainedToZone" : true,
+  "enumeratedWindowCount" : 13,
+  "enumerationWarningCount" : 1,
+  "layoutMatchesExpectedFrames" : true,
+  "mainAfterConstraint" : {
+    "height" : 1050,
+    "width" : 1306,
+    "x" : 1728,
+    "y" : 30
+  },
+  "mainAfterLayout" : {
+    "height" : 1050,
+    "width" : 1306,
+    "x" : 1728,
+    "y" : 30
+  },
+  "mainAfterMaximizeRequest" : {
+    "height" : 1050,
+    "width" : 1874,
+    "x" : 1728,
+    "y" : 30
+  },
+  "mainAfterRestore" : {
+    "height" : 512,
+    "width" : 620,
+    "x" : 1808,
+    "y" : 468
+  },
+  "mainAfterSystemFullScreenAttempt" : {
+    "height" : 1050,
+    "width" : 1306,
+    "x" : 1728,
+    "y" : 30
+  },
+  "mainBefore" : {
+    "height" : 512,
+    "width" : 620,
+    "x" : 1808,
+    "y" : 468
+  },
+  "mainMaximumConstrainedToZone" : true,
+  "mainRemainsSystemFullScreen" : false,
+  "ratio" : 70,
+  "restoreMatchesOriginalFrames" : true,
+  "success" : true,
+  "systemFullScreenConstrainedToZone" : true,
+  "systemFullScreenSupported" : true,
+  "test" : "persistent-accessibility-workspace",
+  "timestamp" : "2026-09-20T11:02:38Z"
+}

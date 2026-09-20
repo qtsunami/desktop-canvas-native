@@ -1,0 +1,10 @@
+{
+  "accessibilityTrusted" : true,
+  "enumeratedWindowCount" : 13,
+  "enumerationWarningCount" : 1,
+  "error" : "The isolated integration-test windows were not found.",
+  "ratio" : 70,
+  "success" : false,
+  "test" : "real-accessibility-layout-and-restore",
+  "timestamp" : "2026-09-20T10:39:25Z"
+}

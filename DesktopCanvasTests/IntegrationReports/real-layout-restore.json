@@ -1,0 +1,47 @@
+{
+  "accessibilityTrusted" : true,
+  "attentionAfterLayout" : {
+    "height" : 1050,
+    "width" : 560,
+    "x" : 3042,
+    "y" : 30
+  },
+  "attentionAfterRestore" : {
+    "height" : 392,
+    "width" : 420,
+    "x" : 3101,
+    "y" : 508
+  },
+  "attentionBefore" : {
+    "height" : 392,
+    "width" : 420,
+    "x" : 3101,
+    "y" : 508
+  },
+  "enumeratedWindowCount" : 14,
+  "enumerationWarningCount" : 1,
+  "layoutMatchesExpectedFrames" : true,
+  "mainAfterLayout" : {
+    "height" : 1050,
+    "width" : 1306,
+    "x" : 1728,
+    "y" : 30
+  },
+  "mainAfterRestore" : {
+    "height" : 512,
+    "width" : 620,
+    "x" : 1808,
+    "y" : 468
+  },
+  "mainBefore" : {
+    "height" : 512,
+    "width" : 620,
+    "x" : 1808,
+    "y" : 468
+  },
+  "ratio" : 70,
+  "restoreMatchesOriginalFrames" : true,
+  "success" : true,
+  "test" : "real-accessibility-layout-and-restore",
+  "timestamp" : "2026-09-20T10:30:31Z"
+}
