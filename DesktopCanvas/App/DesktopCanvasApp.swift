@@ -4,9 +4,13 @@ import SwiftUI
 @main
 @MainActor
 struct DesktopCanvasApp: App {
-    @StateObject private var model = AppModel()
+    @StateObject private var model: AppModel
+    private let floatingControlPanelController: FloatingControlPanelController
 
     init() {
+        let model = AppModel()
+        _model = StateObject(wrappedValue: model)
+        floatingControlPanelController = FloatingControlPanelController(model: model)
 #if DEBUG
         Task { @MainActor in
             DebugIntegrationTestRunner.startIfRequested()

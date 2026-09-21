@@ -4,7 +4,7 @@ import Combine
 enum AppVersion {
     static let marketingVersion = Bundle.main.object(
         forInfoDictionaryKey: "CFBundleShortVersionString"
-    ) as? String ?? "0.2.0"
+    ) as? String ?? "0.2.1"
 
     static let betaLabel: String = {
         var components = marketingVersion.split(separator: ".").map(String.init)
@@ -87,6 +87,7 @@ final class AppModel: ObservableObject {
     @Published var selectedDisplayID = ""
     @Published var isWorking = false
     @Published var isWorkspaceActive = false
+    @Published var isWorkspacePaused = false
     @Published var statusMessage = "准备检查系统权限"
     @Published var logs: [AppLogEntry] = []
 
@@ -199,7 +200,9 @@ final class AppModel: ObservableObject {
             return
         }
         guard !isWorkspaceActive else {
-            statusMessage = "工作台运行中；停止后可重新选择窗口"
+            statusMessage = isWorkspacePaused
+                ? "工作台已暂停；停止后可重新选择窗口"
+                : "工作台运行中；停止后可重新选择窗口"
             return
         }
 
@@ -285,7 +288,8 @@ final class AppModel: ObservableObject {
                 mainOnLeft: mainOnLeft,
                 targetScreen: targetScreen
             )
-            isWorkspaceActive = coordinator.isActive
+            isWorkspaceActive = coordinator.hasWorkspace
+            isWorkspacePaused = false
             statusMessage = "工作台运行中：\(display.shortTitle)，\(Int(ratio)) : \(100 - Int(ratio))"
             log(
                 .info,
@@ -293,7 +297,51 @@ final class AppModel: ObservableObject {
             )
         } catch {
             isWorkspaceActive = false
+            isWorkspacePaused = false
             statusMessage = "布局失败：\(error.localizedDescription)"
+            log(.error, statusMessage)
+        }
+    }
+
+    func toggleWorkspacePause() {
+        if isWorkspacePaused {
+            resumeWorkspace()
+        } else {
+            pauseWorkspace()
+        }
+    }
+
+    func pauseWorkspace() {
+        guard isWorkspaceActive, !isWorkspacePaused, !isWorking else { return }
+        coordinator.pauseConstraints()
+        isWorkspacePaused = true
+        statusMessage = "工作台已暂停：窗口暂时可以自由移动"
+        log(.info, statusMessage)
+    }
+
+    func resumeWorkspace() {
+        guard isWorkspaceActive, isWorkspacePaused, !isWorking else { return }
+        guard let display = selectedDisplay, let targetScreen = display.screen else {
+            statusMessage = "目标显示器不可用，请重新选择"
+            log(.error, statusMessage)
+            return
+        }
+
+        isWorking = true
+        defer { isWorking = false }
+
+        do {
+            try coordinator.updateLayout(
+                ratio: ratio,
+                mainOnLeft: mainOnLeft,
+                targetScreen: targetScreen
+            )
+            isWorkspaceActive = coordinator.hasWorkspace
+            isWorkspacePaused = false
+            statusMessage = "工作台运行中：\(display.shortTitle)，\(Int(ratio)) : \(100 - Int(ratio))"
+            log(.info, "持续约束已继续")
+        } catch {
+            statusMessage = "继续工作台失败：\(error.localizedDescription)"
             log(.error, statusMessage)
         }
     }
@@ -306,11 +354,13 @@ final class AppModel: ObservableObject {
         do {
             try coordinator.restore()
             isWorkspaceActive = false
+            isWorkspacePaused = false
             statusMessage = "已恢复窗口原始位置"
             log(.info, statusMessage)
             refreshWindows()
         } catch {
             isWorkspaceActive = false
+            isWorkspacePaused = false
             statusMessage = "部分窗口恢复失败：\(error.localizedDescription)"
             log(.error, statusMessage)
         }
@@ -431,6 +481,11 @@ final class AppModel: ObservableObject {
 
     private func updateActiveLayout(reason: String) {
         guard isWorkspaceActive, !isWorking else { return }
+        if isWorkspacePaused {
+            statusMessage = "工作台已暂停；新布局将在继续时应用"
+            log(.info, "\(reason)（将在继续时应用）")
+            return
+        }
         guard let display = selectedDisplay, let targetScreen = display.screen else {
             statusMessage = "目标显示器不可用，请重新选择"
             log(.error, statusMessage)
@@ -446,7 +501,7 @@ final class AppModel: ObservableObject {
                 mainOnLeft: mainOnLeft,
                 targetScreen: targetScreen
             )
-            isWorkspaceActive = coordinator.isActive
+            isWorkspaceActive = coordinator.hasWorkspace
             statusMessage = "工作台运行中：\(display.shortTitle)，\(Int(ratio)) : \(100 - Int(ratio))"
             log(.info, reason)
         } catch {

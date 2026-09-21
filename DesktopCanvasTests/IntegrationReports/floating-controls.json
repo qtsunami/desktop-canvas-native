@@ -1,0 +1,110 @@
+{
+  "accessibilityTrusted" : true,
+  "attentionAfterConstraint" : {
+    "height" : 998,
+    "width" : 574,
+    "x" : 3074,
+    "y" : 30
+  },
+  "attentionAfterLayout" : {
+    "height" : 998,
+    "width" : 574,
+    "x" : 3074,
+    "y" : 30
+  },
+  "attentionAfterLiveUpdate" : {
+    "height" : 998,
+    "width" : 765,
+    "x" : 1728,
+    "y" : 30
+  },
+  "attentionAfterMaximizeRequest" : {
+    "height" : 998,
+    "width" : 1920,
+    "x" : 1728,
+    "y" : 30
+  },
+  "attentionAfterRestore" : {
+    "height" : 392,
+    "width" : 420,
+    "x" : 3148,
+    "y" : 457
+  },
+  "attentionBefore" : {
+    "height" : 392,
+    "width" : 420,
+    "x" : 3148,
+    "y" : 457
+  },
+  "attentionMaximumConstrainedToZone" : true,
+  "enumeratedWindowCount" : 16,
+  "enumerationWarningCount" : 1,
+  "layoutMatchesExpectedFrames" : true,
+  "liveLayoutUpdateMatchesExpectedFrames" : true,
+  "mainAfterConstraint" : {
+    "height" : 998,
+    "width" : 1338,
+    "x" : 1728,
+    "y" : 30
+  },
+  "mainAfterLayout" : {
+    "height" : 998,
+    "width" : 1338,
+    "x" : 1728,
+    "y" : 30
+  },
+  "mainAfterLiveUpdate" : {
+    "height" : 998,
+    "width" : 1147,
+    "x" : 2501,
+    "y" : 30
+  },
+  "mainAfterMaximizeRequest" : {
+    "height" : 998,
+    "width" : 1920,
+    "x" : 1728,
+    "y" : 30
+  },
+  "mainAfterRestore" : {
+    "height" : 512,
+    "width" : 620,
+    "x" : 1808,
+    "y" : 417
+  },
+  "mainAfterResume" : {
+    "height" : 998,
+    "width" : 1338,
+    "x" : 1728,
+    "y" : 30
+  },
+  "mainAfterSystemFullScreenAttempt" : {
+    "height" : 998,
+    "width" : 1338,
+    "x" : 1728,
+    "y" : 30
+  },
+  "mainBefore" : {
+    "height" : 512,
+    "width" : 620,
+    "x" : 1808,
+    "y" : 417
+  },
+  "mainMaximumConstrainedToZone" : true,
+  "mainRemainsSystemFullScreen" : false,
+  "mainWhilePaused" : {
+    "height" : 998,
+    "width" : 1920,
+    "x" : 1728,
+    "y" : 30
+  },
+  "pausedWorkspaceAllowsMovement" : true,
+  "pausedWorkspaceRetainsRestorePoint" : true,
+  "ratio" : 70,
+  "restoreMatchesOriginalFrames" : true,
+  "resumeRestoresConstraints" : true,
+  "success" : true,
+  "systemFullScreenConstrainedToZone" : true,
+  "systemFullScreenSupported" : true,
+  "test" : "persistent-accessibility-workspace",
+  "timestamp" : "2026-09-21T08:04:07Z"
+}

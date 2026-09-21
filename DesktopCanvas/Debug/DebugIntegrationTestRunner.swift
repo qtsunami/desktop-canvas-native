@@ -105,6 +105,32 @@ enum DebugIntegrationTestRunner {
                 && approximatelyEqual(attentionAfterLayout, expectedFrames.attention)
             report["layoutMatchesExpectedFrames"] = layoutMatches
 
+            coordinator.pauseConstraints()
+            let pausedWorkspaceRetained = coordinator.hasWorkspace && !coordinator.isActive
+            report["pausedWorkspaceRetainsRestorePoint"] = pausedWorkspaceRetained
+
+            try client.setFrame(accessibilityVisibleFrame, for: mainWindow)
+            try? await Task.sleep(for: .milliseconds(500))
+            let mainWhilePaused = try client.currentFrame(of: mainWindow)
+            report["mainWhilePaused"] = dictionary(for: mainWhilePaused)
+            let pausedWorkspaceAllowsMovement = approximatelyEqual(
+                mainWhilePaused,
+                accessibilityVisibleFrame
+            )
+            report["pausedWorkspaceAllowsMovement"] = pausedWorkspaceAllowsMovement
+
+            try coordinator.updateLayout(
+                ratio: 70,
+                mainOnLeft: true,
+                targetScreen: targetScreen
+            )
+            try? await Task.sleep(for: .milliseconds(350))
+            let mainAfterResume = try client.currentFrame(of: mainWindow)
+            report["mainAfterResume"] = dictionary(for: mainAfterResume)
+            let resumeRestoresConstraints = coordinator.isActive
+                && approximatelyEqual(mainAfterResume, expectedFrames.main)
+            report["resumeRestoresConstraints"] = resumeRestoresConstraints
+
             // Simulate the system or another application expanding each window
             // to the whole usable screen. The active workspace must pull it back
             // into its assigned zone without user intervention.
@@ -186,6 +212,9 @@ enum DebugIntegrationTestRunner {
                 && approximatelyEqual(attentionAfterRestore, attentionBefore)
             report["restoreMatchesOriginalFrames"] = restoreMatches
             report["success"] = layoutMatches
+                && pausedWorkspaceRetained
+                && pausedWorkspaceAllowsMovement
+                && resumeRestoresConstraints
                 && mainMaximumConstrained
                 && attentionMaximumConstrained
                 && systemFullScreenConstrained

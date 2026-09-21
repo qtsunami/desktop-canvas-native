@@ -1,4 +1,4 @@
-# 桌面画布（Desktop Canvas）Beta 0.2
+# 桌面画布（Desktop Canvas）Beta 0.2.1
 
 一个原生 macOS 技术验证项目，用于把“当前主任务”和“需要持续关注的任务”并排放在同一桌面中。
 
@@ -11,7 +11,9 @@
 5. 支持手动选择目标显示器，并在显示器连接状态变化时更新布局；
 6. 运行中可即时调整比例、左右位置和目标显示器，无需停止工作台；
 7. 自动保存比例、主任务位置和目标显示器偏好；
-8. 停止工作台后恢复布局前的窗口位置和尺寸。
+8. 启用后在目标显示器顶部提供不抢焦点的悬浮控制条；
+9. 可从悬浮控制条暂停或继续约束、交换左右、调整比例；
+10. 停止工作台后恢复布局前的窗口位置和尺寸。
 
 ## 运行条件
 
@@ -27,16 +29,17 @@
 swift test --disable-sandbox
 ```
 
-应用工程位于 `DesktopCanvas.xcodeproj`。Beta 0.2 未开启 App Sandbox，因为管理其他应用窗口依赖 macOS Accessibility API；应用不使用屏幕录制权限，也不读取窗口内容。
+应用工程位于 `DesktopCanvas.xcodeproj`。Beta 0.2.1 未开启 App Sandbox，因为管理其他应用窗口依赖 macOS Accessibility API；应用不使用屏幕录制权限，也不读取窗口内容。
 
 ## Beta 打包
 
-运行 `scripts/package-beta.sh` 会默认构建 Beta 0.2，同时支持 Apple Silicon 与 Intel Mac，并在 `dist` 目录生成 DMG、ZIP 和 SHA-256 校验文件。当前本地 Beta 使用临时签名且尚未经过 Apple 公证。
+运行 `scripts/package-beta.sh` 会默认构建 Beta 0.2.1，同时支持 Apple Silicon 与 Intel Mac，并在 `dist` 目录生成 DMG、ZIP 和 SHA-256 校验文件。当前本地 Beta 使用临时签名且尚未经过 Apple 公证。
 
 ## 当前边界
 
 - 启用前只选择可移动、可调整尺寸的普通窗口；启用后若所选窗口进入系统全屏，会自动退出全屏并回到所属区域。
-- 持续约束仅在“工作台运行中”生效；点击“停止并恢复”会关闭约束并还原窗口。
+- 持续约束仅在“工作台运行中”生效；暂停后窗口可自由移动，但悬浮控制条和原始恢复点仍会保留。
+- 点击“停止并恢复”会关闭工作台、隐藏悬浮控制条并还原窗口。
 - 恢复位置保存在当前运行会话中，退出应用后不会继续保留。
 - 多显示器环境支持手动指定目标显示器；暂不支持让两个受管窗口分别位于不同显示器。
 - 部分应用会强制最小窗口尺寸，因此实际比例可能有少量偏差。
@@ -46,8 +49,8 @@ swift test --disable-sandbox
 - Debug 与 Release 均通过 Xcode 编译。
 - Swift 6 严格并发检查通过。
 - 布局计算、比例限制、左右交换、坐标转换与区域约束共 7 项测试通过。
-- 真实 Accessibility 集成测试同时覆盖初始 70:30 布局、最大化约束、系统全屏约束、运行中切换为右侧 60:40 布局，以及最终恢复原始位置。
+- 真实 Accessibility 集成测试同时覆盖初始 70:30 布局、暂停与继续、最大化约束、系统全屏约束、运行中切换为右侧 60:40 布局，以及最终恢复原始位置。
 - Xcode 静态分析通过。
 - 授权页和工作台页已完成浅色、深色离屏渲染检查，快照位于 `DesktopCanvasTests/Snapshots`。
 
-真实窗口测试报告位于 `DesktopCanvasTests/IntegrationReports/persistent-workspace.json`。Debug 集成测试仅使用标题固定的空白测试窗口，不会选择用户的工作窗口。
+真实窗口测试报告位于 `DesktopCanvasTests/IntegrationReports/floating-controls.json`。Debug 集成测试仅使用标题固定的空白测试窗口，不会选择用户的工作窗口。

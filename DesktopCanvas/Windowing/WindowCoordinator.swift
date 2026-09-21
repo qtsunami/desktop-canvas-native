@@ -44,6 +44,10 @@ final class WindowCoordinator {
         constraintMonitor.isActive
     }
 
+    var hasWorkspace: Bool {
+        canRestore && activeMainWindow != nil && activeAttentionWindow != nil
+    }
+
     func apply(
         mainWindow: RunningWindow,
         attentionWindow: RunningWindow,
@@ -112,6 +116,11 @@ final class WindowCoordinator {
             attentionWindow: attentionWindow,
             attentionZone: frames.attention
         )
+    }
+
+    func pauseConstraints() {
+        guard hasWorkspace else { return }
+        constraintMonitor.stop()
     }
 
     func restore() throws {

@@ -16,28 +16,53 @@ enum SnapshotRenderer {
         let mode = requestedMode.replacingOccurrences(of: "-dark", with: "")
         let outputURL = URL(fileURLWithPath: arguments[2])
         let model = AppModel()
+        let size: CGSize
+        let rootView: AnyView
 
         switch mode {
         case "permission":
             model.permissionState = .required
             model.statusMessage = "授权后才能查看和调整其他应用窗口"
+            size = CGSize(width: 760, height: 760)
+            rootView = AnyView(MainView().environmentObject(model))
         case "workspace":
             configureWorkspaceFixture(model)
+            size = CGSize(width: 760, height: 760)
+            rootView = AnyView(MainView().environmentObject(model))
         case "workspace-active":
             configureWorkspaceFixture(model)
             model.isWorkspaceActive = true
             model.statusMessage = "工作台运行中：内建显示器（主显示器），70 : 30"
+            size = CGSize(width: 760, height: 760)
+            rootView = AnyView(MainView().environmentObject(model))
+        case "workspace-paused":
+            configureWorkspaceFixture(model)
+            model.isWorkspaceActive = true
+            model.isWorkspacePaused = true
+            model.statusMessage = "工作台已暂停：窗口暂时可以自由移动"
+            size = CGSize(width: 760, height: 760)
+            rootView = AnyView(MainView().environmentObject(model))
+        case "floating-controls", "floating-controls-paused":
+            configureWorkspaceFixture(model)
+            model.isWorkspaceActive = true
+            model.isWorkspacePaused = mode == "floating-controls-paused"
+            size = CGSize(width: 520, height: 120)
+            rootView = AnyView(
+                ZStack {
+                    Color(nsColor: .windowBackgroundColor)
+                    FloatingControlBar(model: model)
+                }
+            )
         default:
             throw SnapshotError.invalidArguments
         }
 
-        let content = MainView()
-            .environmentObject(model)
-            .frame(width: 760, height: 760)
+        let content = rootView
+            .frame(width: size.width, height: size.height)
             .environment(\.colorScheme, isDark ? .dark : .light)
 
         let hostingView = NSHostingView(rootView: content)
-        hostingView.frame = NSRect(x: 0, y: 0, width: 760, height: 760)
+        hostingView.frame = NSRect(origin: .zero, size: size)
         hostingView.appearance = NSAppearance(named: isDark ? .darkAqua : .aqua)
         hostingView.layoutSubtreeIfNeeded()
         hostingView.displayIfNeeded()

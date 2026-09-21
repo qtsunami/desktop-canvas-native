@@ -17,6 +17,7 @@
 		000000000000000000000109 /* DebugIntegrationTestRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000208 /* DebugIntegrationTestRunner.swift */; };
 		000000000000000000000110 /* WindowConstraintMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000209 /* WindowConstraintMonitor.swift */; };
 		000000000000000000000111 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000212 /* Assets.xcassets */; };
+		000000000000000000000112 /* FloatingControlPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000213 /* FloatingControlPanel.swift */; };
 		000000000000000000000108 /* ApplicationServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 000000000000000000000211 /* ApplicationServices.framework */; };
 /* End PBXBuildFile section */
 
@@ -33,6 +34,7 @@
 		000000000000000000000210 /* DesktopCanvas.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DesktopCanvas.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		000000000000000000000211 /* ApplicationServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ApplicationServices.framework; path = System/Library/Frameworks/ApplicationServices.framework; sourceTree = SDKROOT; };
 		000000000000000000000212 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		000000000000000000000213 /* FloatingControlPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloatingControlPanel.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -125,6 +127,7 @@
 			isa = PBXGroup;
 			children = (
 				000000000000000000000207 /* MainView.swift */,
+				000000000000000000000213 /* FloatingControlPanel.swift */,
 			);
 			path = UI;
 			sourceTree = "<group>";
@@ -223,6 +226,7 @@
 				000000000000000000000107 /* MainView.swift in Sources */,
 				000000000000000000000109 /* DebugIntegrationTestRunner.swift in Sources */,
 				000000000000000000000110 /* WindowConstraintMonitor.swift in Sources */,
+				000000000000000000000112 /* FloatingControlPanel.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -308,7 +312,7 @@
 				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 3;
 				DEAD_CODE_STRIPPING = YES;
 				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -320,7 +324,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 0.2.0;
+				MARKETING_VERSION = 0.2.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.multidesktop.desktopcanvas;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -336,7 +340,7 @@
 				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 3;
 				DEAD_CODE_STRIPPING = YES;
 				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -348,7 +352,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 0.2.0;
+				MARKETING_VERSION = 0.2.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.multidesktop.desktopcanvas;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_COMPILATION_MODE = wholemodule;

@@ -4,17 +4,34 @@ set -euo pipefail
 
 SCRIPT_DIRECTORY="${0:A:h}"
 PROJECT_ROOT="${SCRIPT_DIRECTORY:h}"
-BETA_VERSION="${1:-0.2}"
-MARKETING_VERSION="${2:-0.2.0}"
-BUILD_VERSION="${3:-2}"
+BETA_VERSION="${1:-0.2.1}"
+MARKETING_VERSION="${2:-0.2.1}"
+BUILD_VERSION="${3:-3}"
 RELEASE_NAME="DesktopCanvas-Beta-${BETA_VERSION}"
 DIST_DIRECTORY="${PROJECT_ROOT}/dist"
-DERIVED_DATA_DIRECTORY="${PROJECT_ROOT}/.release/DerivedData-${BETA_VERSION}"
+BUILD_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/desktopcanvas-release.XXXXXX")"
+DERIVED_DATA_DIRECTORY="${BUILD_ROOT}/DerivedData"
 APP_PATH="${DERIVED_DATA_DIRECTORY}/Build/Products/Release/DesktopCanvas.app"
 DMG_PATH="${DIST_DIRECTORY}/${RELEASE_NAME}.dmg"
 ZIP_PATH="${DIST_DIRECTORY}/${RELEASE_NAME}-macOS-universal.zip"
 CHECKSUM_PATH="${DIST_DIRECTORY}/${RELEASE_NAME}-SHA256.txt"
 RELEASE_NOTES_PATH="${PROJECT_ROOT}/RELEASE_NOTES_BETA_${BETA_VERSION}.md"
+STAGING_ROOT=""
+LSREGISTER="/System/Library/Frameworks/CoreServices.framework/Versions/Current/Frameworks/LaunchServices.framework/Versions/Current/Support/lsregister"
+
+cleanup() {
+    if [[ -d "${APP_PATH}" && -x "${LSREGISTER}" ]]; then
+        "${LSREGISTER}" -u "${APP_PATH}" >/dev/null 2>&1 || true
+    fi
+    if [[ -n "${STAGING_ROOT}" && -d "${STAGING_ROOT}" ]]; then
+        rm -rf -- "${STAGING_ROOT}"
+    fi
+    if [[ -d "${BUILD_ROOT}" ]]; then
+        rm -rf -- "${BUILD_ROOT}"
+    fi
+}
+
+trap cleanup EXIT
 
 if [[ ! -f "${RELEASE_NOTES_PATH}" ]]; then
     print -u2 "未找到对应的发布说明：${RELEASE_NOTES_PATH}"
@@ -28,7 +45,7 @@ for output_path in "${DMG_PATH}" "${ZIP_PATH}" "${CHECKSUM_PATH}"; do
     fi
 done
 
-mkdir -p "${DIST_DIRECTORY}" "${PROJECT_ROOT}/.release"
+mkdir -p "${DIST_DIRECTORY}"
 
 xcodebuild \
     -project "${PROJECT_ROOT}/DesktopCanvas.xcodeproj" \
@@ -59,7 +76,6 @@ if [[ " ${BUILT_ARCHITECTURES} " != *" arm64 "* || " ${BUILT_ARCHITECTURES} " !=
 fi
 
 STAGING_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/desktopcanvas-beta.XXXXXX")"
-trap 'rm -rf "${STAGING_ROOT}"' EXIT
 PAYLOAD_DIRECTORY="${STAGING_ROOT}/${RELEASE_NAME}"
 mkdir -p "${PAYLOAD_DIRECTORY}"
 

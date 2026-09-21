@@ -90,11 +90,17 @@ struct MainView: View {
         if model.permissionState == .required {
             return "exclamationmark.triangle.fill"
         }
+        if model.isWorkspacePaused {
+            return "pause.circle.fill"
+        }
         return model.isWorkspaceActive ? "lock.rectangle.fill" : "checkmark.circle.fill"
     }
 
     private var statusColor: Color {
         if model.permissionState == .required {
+            return .orange
+        }
+        if model.isWorkspacePaused {
             return .orange
         }
         return model.isWorkspaceActive ? .accentColor : .green
@@ -177,16 +183,22 @@ private struct WorkspaceSetupView: View {
         VStack(alignment: .leading, spacing: 16) {
             if model.isWorkspaceActive {
                 HStack(alignment: .top, spacing: 10) {
-                    Image(systemName: "lock.rectangle.fill")
-                        .foregroundStyle(.green)
+                    Image(
+                        systemName: model.isWorkspacePaused
+                            ? "pause.circle.fill"
+                            : "lock.rectangle.fill"
+                    )
+                        .foregroundStyle(model.isWorkspacePaused ? Color.orange : Color.green)
                         .accessibilityHidden(true)
                     VStack(alignment: .leading, spacing: 3) {
-                        Text("工作台运行中")
+                        Text(model.isWorkspacePaused ? "工作台已暂停" : "工作台运行中")
                             .font(.headline)
                         Text(
-                            "\(model.selectedDisplay?.shortTitle ?? "所选显示器") · "
-                                + "\(Int(model.ratio))% / \(100 - Int(model.ratio))%。"
-                                + " 调整下方布局会立即生效。"
+                            model.isWorkspacePaused
+                                ? "悬浮控制条仍会保留。调整下方布局后，点击继续即可应用。"
+                                : "\(model.selectedDisplay?.shortTitle ?? "所选显示器") · "
+                                    + "\(Int(model.ratio))% / \(100 - Int(model.ratio))%。"
+                                    + " 调整下方布局会立即生效。"
                         )
                             .font(.caption)
                             .foregroundStyle(.secondary)
@@ -194,17 +206,26 @@ private struct WorkspaceSetupView: View {
                     }
                     Spacer()
                     Button {
-                        model.restoreWindows()
+                        model.toggleWorkspacePause()
                     } label: {
-                        Label("停止并恢复", systemImage: "arrow.uturn.backward")
+                        Label(
+                            model.isWorkspacePaused ? "继续约束" : "暂停约束",
+                            systemImage: model.isWorkspacePaused ? "play.fill" : "pause.fill"
+                        )
                     }
-                    .disabled(!model.canRestore)
+                    .disabled(model.isWorking)
                 }
                 .padding(12)
-                .background(Color.green.opacity(0.10), in: RoundedRectangle(cornerRadius: 8))
+                .background(
+                    (model.isWorkspacePaused ? Color.orange : Color.green).opacity(0.10),
+                    in: RoundedRectangle(cornerRadius: 8)
+                )
                 .overlay {
                     RoundedRectangle(cornerRadius: 8)
-                        .stroke(Color.green.opacity(0.35), lineWidth: 1)
+                        .stroke(
+                            (model.isWorkspacePaused ? Color.orange : Color.green).opacity(0.35),
+                            lineWidth: 1
+                        )
                 }
             }
 
@@ -309,19 +330,28 @@ private struct WorkspaceSetupView: View {
             .disabled(model.isWorking || model.displays.isEmpty)
 
             HStack {
-                Button {
-                    model.applyLayout()
-                } label: {
-                    Label(
-                        model.isWorkspaceActive ? "工作台已启用" : "启用工作台",
-                        systemImage: model.isWorkspaceActive
-                            ? "lock.rectangle.fill"
-                            : "rectangle.split.2x1.fill"
-                    )
+                if model.isWorkspaceActive {
+                    Button {
+                        model.toggleWorkspacePause()
+                    } label: {
+                        Label(
+                            model.isWorkspacePaused ? "继续工作台" : "暂停工作台",
+                            systemImage: model.isWorkspacePaused ? "play.fill" : "pause.fill"
+                        )
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .keyboardShortcut(.return, modifiers: .command)
+                    .disabled(model.isWorking)
+                } else {
+                    Button {
+                        model.applyLayout()
+                    } label: {
+                        Label("启用工作台", systemImage: "rectangle.split.2x1.fill")
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .keyboardShortcut(.return, modifiers: .command)
+                    .disabled(!model.canApply)
                 }
-                .buttonStyle(.borderedProminent)
-                .keyboardShortcut(.return, modifiers: .command)
-                .disabled(!model.canApply)
 
                 Button {
                     model.restoreWindows()
@@ -332,7 +362,13 @@ private struct WorkspaceSetupView: View {
 
                 Spacer()
 
-                Text(model.isWorkspaceActive ? "持续限制已开启" : "启用后，最大化也不会越过分区")
+                Text(
+                    model.isWorkspacePaused
+                        ? "窗口约束已暂停"
+                        : model.isWorkspaceActive
+                            ? "持续限制已开启"
+                            : "启用后，最大化也不会越过分区"
+                )
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -554,15 +590,24 @@ struct MenuBarContentView: View {
 
                 if model.isWorkspaceActive {
                     Label(
-                        "工作台运行中（\(Int(model.ratio)):\(100 - Int(model.ratio))）",
-                        systemImage: "lock.rectangle.fill"
+                        model.isWorkspacePaused
+                            ? "工作台已暂停（\(Int(model.ratio)):\(100 - Int(model.ratio))）"
+                            : "工作台运行中（\(Int(model.ratio)):\(100 - Int(model.ratio))）",
+                        systemImage: model.isWorkspacePaused
+                            ? "pause.circle.fill"
+                            : "lock.rectangle.fill"
                     )
-                }
 
-                Button("启用工作台") {
-                    model.applyLayout()
+                    Button(model.isWorkspacePaused ? "继续工作台" : "暂停工作台") {
+                        model.toggleWorkspacePause()
+                    }
+                    .disabled(model.isWorking)
+                } else {
+                    Button("启用工作台") {
+                        model.applyLayout()
+                    }
+                    .disabled(!model.canApply)
                 }
-                .disabled(!model.canApply)
 
                 Menu("主任务比例") {
                     ForEach([50, 60, 70, 75], id: \.self) { value in
